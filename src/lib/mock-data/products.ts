@@ -1,0 +1,141 @@
+import type { Product } from '@/types/domain';
+
+// Seed catalog standing in for the scrape/normalize/enrich pipeline (SDS §6, §8, §9).
+// frCoverage scores are illustrative placeholders, not derived from real ingredient evidence.
+export const mockProducts: Product[] = [
+  {
+    id: 'prod_mielle_rosemary_shampoo',
+    name: 'Rosemary Mint Strengthening Shampoo',
+    brand: 'Mielle Organics',
+    type: 'shampoo',
+    ingredients: ['water', 'rosemary leaf extract', 'biotin', 'mild surfactants'],
+    frCoverage: [{ frId: 'FR01', score: 82 }],
+  },
+  {
+    id: 'prod_mielle_pomegranate_leave_in',
+    name: 'Pomegranate & Honey Leave-In Conditioner',
+    brand: 'Mielle Organics',
+    type: 'leave_in',
+    ingredients: ['water', 'pomegranate extract', 'honey', 'glycerin', 'panthenol'],
+    frCoverage: [
+      { frId: 'FR05', score: 78 },
+      { frId: 'FR09', score: 70 },
+    ],
+  },
+  {
+    id: 'prod_mielle_babassu_conditioner',
+    name: 'Babassu Oil & Mint Deep Conditioner',
+    brand: 'Mielle Organics',
+    type: 'deep_conditioner',
+    ingredients: ['water', 'babassu oil', 'peppermint oil', 'shea butter'],
+    frCoverage: [{ frId: 'FR09', score: 74 }],
+  },
+  {
+    id: 'prod_auntjackies_curl_custard',
+    name: 'Curl La La Defining Curl Custard',
+    brand: "Aunt Jackie's",
+    type: 'styler',
+    ingredients: ['water', 'flaxseed extract', 'aloe vera', 'castor oil'],
+    frCoverage: [{ frId: 'FR14', score: 76 }],
+  },
+  {
+    id: 'prod_auntjackies_quench_moisturizer',
+    name: 'Quench Moisturizing Hair Butter Creme',
+    brand: "Aunt Jackie's",
+    type: 'styler',
+    ingredients: ['water', 'shea butter', 'coconut oil', 'aloe vera juice'],
+    frCoverage: [{ frId: 'FR09', score: 68 }],
+  },
+  {
+    id: 'prod_auntjackies_flaxseed_gel',
+    name: 'Flaxseed Recipes Extra Hold Gel',
+    brand: "Aunt Jackie's",
+    type: 'styler',
+    ingredients: ['water', 'flaxseed extract', 'carbomer', 'aloe vera'],
+    frCoverage: [{ frId: 'FR14', score: 81 }],
+  },
+  {
+    id: 'prod_sheamoisture_manuka_masque',
+    name: 'Manuka Honey & Yogurt Hydration Hair Masque',
+    brand: 'SheaMoisture',
+    type: 'deep_conditioner',
+    ingredients: ['water', 'manuka honey', 'yogurt extract', 'shea butter'],
+    frCoverage: [{ frId: 'FR09', score: 80 }],
+  },
+  {
+    id: 'prod_sheamoisture_coconut_shampoo',
+    name: 'Coconut & Hibiscus Curl & Shine Shampoo',
+    brand: 'SheaMoisture',
+    type: 'shampoo',
+    ingredients: ['water', 'coconut oil', 'hibiscus flower extract', 'mild surfactants'],
+    frCoverage: [{ frId: 'FR01', score: 75 }],
+  },
+  {
+    id: 'prod_sheamoisture_jbco_leave_in',
+    name: 'Jamaican Black Castor Oil Strengthen & Restore Leave-In',
+    brand: 'SheaMoisture',
+    type: 'leave_in',
+    ingredients: ['water', 'jamaican black castor oil', 'apple cider vinegar', 'shea butter'],
+    frCoverage: [{ frId: 'FR05', score: 72 }],
+  },
+  {
+    id: 'prod_thedoux_foam_wrap',
+    name: 'Foam Wrap Setting Foam',
+    brand: 'The Doux',
+    type: 'styler',
+    ingredients: ['water', 'polymer blend', 'panthenol', 'aloe vera'],
+    frCoverage: [{ frId: 'FR14', score: 79 }],
+  },
+  {
+    id: 'prod_thedoux_texture_foam',
+    name: 'Def Texture Foam Mousse',
+    brand: 'The Doux',
+    type: 'styler',
+    ingredients: ['water', 'polymer blend', 'shea butter', 'glycerin'],
+    frCoverage: [{ frId: 'FR09', score: 66 }],
+  },
+  {
+    id: 'prod_thedoux_hydration_oil',
+    name: 'Big Detangler Hydrating Detangling Oil',
+    brand: 'The Doux',
+    type: 'oil',
+    ingredients: ['sweet almond oil', 'jojoba oil', 'vitamin e'],
+    frCoverage: [{ frId: 'FR05', score: 74 }],
+  },
+  {
+    id: 'prod_keracare_thermal_wonder',
+    name: 'Thermal Wonder Heat Protectant',
+    brand: 'KeraCare',
+    type: 'heat_protectant',
+    ingredients: ['water', 'dimethicone', 'cyclopentasiloxane', 'panthenol'],
+    frCoverage: [{ frId: 'FR22', score: 85 }],
+  },
+  {
+    id: 'prod_keracare_detangling_shampoo',
+    name: 'Detangling Shampoo',
+    brand: 'KeraCare',
+    type: 'shampoo',
+    ingredients: ['water', 'mild surfactants', 'panthenol', 'chamomile extract'],
+    frCoverage: [{ frId: 'FR01', score: 70 }],
+  },
+  {
+    id: 'prod_keracare_leave_in',
+    name: 'Leave-In Conditioner',
+    brand: 'KeraCare',
+    type: 'leave_in',
+    ingredients: ['water', 'hydrolyzed protein', 'glycerin', 'panthenol'],
+    frCoverage: [{ frId: 'FR05', score: 77 }],
+  },
+  {
+    id: 'prod_keracare_natural_oil_moist',
+    name: 'Natural Textures Nourishing Oil Moisturizer',
+    brand: 'KeraCare',
+    type: 'oil',
+    ingredients: ['water', 'coconut oil', 'olive oil', 'shea butter'],
+    frCoverage: [{ frId: 'FR09', score: 71 }],
+  },
+];
+
+export function getProductById(productId: string): Product | undefined {
+  return mockProducts.find((product) => product.id === productId);
+}
