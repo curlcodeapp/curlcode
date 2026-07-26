@@ -6,14 +6,17 @@ A responsive web app that recommends hair care products and routines based on us
 
 The MVP is being built as a scoped-down slice of a much larger spec (see `docs/product/`). It targets one seeded hairstyle, a small mock product catalog, and a subset of the recommendation rule set — not the full ingestion/enrichment pipeline described in the SDS. Milestones (see `docs/plans/` and `.claude/plans/` for the full breakdown):
 
-- **M0/M1 (current):** static walkthrough of all five primary screens (Today, Products, Routines, Recommendations, Profile) against mock data — no auth, no backend required.
-- **M2+:** Supabase-backed auth and persistence, the real deterministic evaluation engine, and recommendation overrides.
+- **M0/M1 (done):** static walkthrough of all five primary screens (Today, Products, Routines, Recommendations, Profile) against mock data.
+- **M2 (current):** real Supabase Auth (email/password) and per-user persistence for the hair profile and an activated routine. The product catalog, hairstyle, and FR definitions are still mock data — see "Mock vs. real data" below.
+- **M3+:** the real deterministic evaluation engine and recommendation overrides.
+
+The app now requires Supabase to run at all (every route goes through `src/proxy.ts`, which needs a Supabase session) — see Getting started.
 
 ## Tech stack
 
 - **App:** Next.js (App Router) + TypeScript + Tailwind CSS
-- **Backend:** [Supabase](https://supabase.com) (Postgres, Auth, Row Level Security) — wired in from M2 onward
-- **Testing:** Vitest + React Testing Library (unit/component), Playwright (end-to-end)
+- **Backend:** [Supabase](https://supabase.com) (Postgres, Auth, Row Level Security)
+- **Testing:** Vitest + React Testing Library (unit/component), Playwright (end-to-end, runs against a real local Supabase instance)
 - **Lint/format:** ESLint + Prettier
 - **CI:** GitHub Actions
 
@@ -21,7 +24,7 @@ The MVP is being built as a scoped-down slice of a much larger spec (see `docs/p
 
 - Node.js (LTS)
 - npm
-- [Supabase CLI](https://supabase.com/docs/guides/cli) for local backend development (not required until M2)
+- [Supabase CLI](https://supabase.com/docs/guides/cli) + Docker, for local backend development
 
 ## Getting started
 
@@ -29,43 +32,55 @@ The MVP is being built as a scoped-down slice of a much larger spec (see `docs/p
 git clone https://github.com/curlcodeapp/curlcode.git
 cd curlcode
 npm install
+npx supabase start   # starts local Postgres/Auth in Docker, applies supabase/migrations
+```
+
+`supabase start` prints a local `API_URL` and `ANON_KEY`. Copy `.env.example` to `.env.local` and fill those in, then:
+
+```bash
 npm run dev
 ```
 
-Open http://localhost:3000 — it redirects to `/today`. No `.env` is required yet; the current milestone renders entirely from mock data in `src/lib/mock-data/`.
+Open http://localhost:3000 — it redirects to `/login`. Sign up with any email/password (local dev auto-confirms, no real email is sent).
 
 ## Environment variables
 
-Not required until Supabase is wired in (M2). When needed, copy `.env.example` to `.env.local` and fill in:
+Copy `.env.example` to `.env.local`:
 
 | Variable                        | Description                                                                                    |
 | ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL                                                                      |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL (`npx supabase status` for local)                                    |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/public key (safe for the client; access is enforced via Row Level Security) |
 
 Never commit `.env.local` or put the Supabase **service role** key in any `NEXT_PUBLIC_*` variable — it must only be used server-side.
+
+## Mock vs. real data
+
+- **Real (Supabase-backed):** auth, the user's hair profile (`hair_profiles`), and an activated routine with its steps (`routines`, `routine_steps`, `routine_step_products`).
+- **Still mock (`src/lib/mock-data/`):** the product catalog, the one seeded hairstyle, the FR (functional requirement) subset, and the recommendation cards on the Recommendations screen. Activating a routine copies the mock routine _template_ into real per-user rows — the template itself stays mock.
 
 ## Project structure
 
 ```
 src/
   app/
-    (auth)/login/        Login screen (stub until M2 wires real auth)
-    (app)/                Persistent bottom-nav shell + the five primary screens
-      today/
-      products/
-      routines/
-      recommendations/
-      profile/
-  components/             Shared UI (BottomNav, Card, ...)
-  features/                Feature-scoped domain logic (added as milestones need it)
+    (auth)/login/         Real email/password signup & login (Supabase Auth)
+    (app)/                 Persistent bottom-nav shell + the five primary screens
+      today/ products/ routines/ recommendations/ profile/
+  components/              Shared UI (BottomNav, Card, ...)
+  features/
+    auth/                  Server actions: signUp, signIn, signOut
+    assessment/             HairProfile: data.ts (read), actions.ts (save), ProfileForm.tsx
+    routines/                Routine: data.ts (read active routine), actions.ts (activate template)
   lib/
-    supabase/              Browser/server Supabase clients (unused until M2)
-    mock-data/              Seed catalog, hairstyle, routine template, FR subset, recommendations
-  types/                    Domain types mirroring the SDS's core domain model
+    supabase/                Browser/server Supabase clients + env helper
+    mock-data/                Seed catalog, hairstyle, routine template, FR subset, recommendations
+  types/                      Domain types mirroring the SDS's core domain model
+  proxy.ts                    Session refresh + auth redirect (Next.js 16's proxy, formerly "middleware")
 supabase/
-  migrations/               SQL migrations (added from M2)
-docs/                       Product spec, architecture, decision records, wireframes
+  migrations/                 hair_profiles, routines, routine_steps, routine_step_products + RLS
+e2e/                          Playwright end-to-end flows (signup → profile → activate routine)
+docs/                         Product spec, architecture, decision records, wireframes
 ```
 
 ## Scripts
@@ -76,14 +91,14 @@ npm run build          # production build
 npm run lint            # ESLint
 npm run typecheck       # tsc --noEmit
 npm run test              # Vitest (unit/component)
-npm run test:e2e          # Playwright (end-to-end)
+npm run test:e2e          # Playwright (end-to-end) — needs `npx supabase start` running first
 npm run format             # Prettier --write
 npm run format:check        # Prettier --check
 ```
 
 ## Testing
 
-Run `npm run typecheck`, `npm run lint`, and `npm run test` before opening a PR — all three run in CI. Every screen has at least one render test. Playwright's e2e suite grows as real user flows (create routine, evaluate, accept recommendation) come online in M3+.
+Run `npm run typecheck`, `npm run lint`, and `npm run test` before opening a PR — all run in CI, along with `npm run test:e2e` against a fresh local Supabase instance started in the CI job itself. Every screen has at least one render test (Vitest mocks the Supabase-backed data calls). The Playwright suite exercises the real signup → complete profile → activate routine flow against a real database — it's the source of truth for whether auth/persistence actually works end to end.
 
 ## Contributing
 

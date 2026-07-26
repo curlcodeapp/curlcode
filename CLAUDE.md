@@ -9,8 +9,8 @@ curlcode recommends hair care products and routines based on user-provided hair 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Supabase for Postgres, Auth, and Row Level Security — not wired into the UI until M2; the current milestone runs entirely on mock data
-- Vitest + React Testing Library for unit/component tests, Playwright for end-to-end
+- Supabase for Postgres, Auth, and Row Level Security — real auth + persistence as of M2 (hair profile, routines). Product catalog/hairstyle/FR definitions are still mock data.
+- Vitest + React Testing Library for unit/component tests, Playwright for end-to-end (runs against a real local Supabase)
 - ESLint + Prettier
 - GitHub Actions CI
 
@@ -19,22 +19,27 @@ curlcode recommends hair care products and routines based on user-provided hair 
 ```
 src/
   app/
-    (auth)/login/        Login screen (stub until M2 wires real auth)
-    (app)/                Persistent bottom-nav shell + the five primary screens
+    (auth)/login/         Real email/password signup & login (Supabase Auth)
+    (app)/                 Persistent bottom-nav shell + the five primary screens
       today/ products/ routines/ recommendations/ profile/
-  components/             Shared UI (BottomNav, Card, ...)
-  features/                Feature-scoped domain logic — add as milestones need it
+  components/              Shared UI (BottomNav, Card, ...)
+  features/
+    auth/                   Server actions: signUp, signIn, signOut
+    assessment/              HairProfile: data.ts (read), actions.ts (save), ProfileForm.tsx
+    routines/                 Routine: data.ts (read active routine), actions.ts (activate template)
   lib/
-    supabase/              Browser/server Supabase clients (unused until M2)
-    mock-data/              Seed catalog, hairstyle, routine template, FR subset, recommendations
-  types/                    Domain types mirroring SDS §5 (Core Domain Model)
+    supabase/                 Browser/server Supabase clients + env helper
+    mock-data/                 Seed catalog, hairstyle, routine template, FR subset, recommendations
+  types/                       Domain types mirroring SDS §5 (Core Domain Model)
+  proxy.ts                     Session refresh + auth redirect (Next.js 16's "proxy" convention, formerly middleware.ts — see "Next.js 16 notes" below)
 supabase/
-  migrations/               SQL migrations (added from M2)
+  migrations/                  hair_profiles, routines, routine_steps, routine_step_products + RLS
+e2e/                           Playwright flows (signup → profile → activate routine)
 docs/
-  product/                 SDS + product decisions
-  architecture/            System design, data model, security notes
-  decisions/                ADRs for non-obvious decisions
-  plans/                    In-progress implementation plans
+  product/                    SDS + product decisions
+  architecture/               System design, data model, security notes
+  decisions/                   ADRs for non-obvious decisions
+  plans/                       In-progress implementation plans
   wireframes/
 ```
 
@@ -51,7 +56,13 @@ npm run test           # Vitest
 npm run format:check    # Prettier --check
 ```
 
-Use `npm run dev` to run the app locally; there is no way to visually verify a UI change without doing so — say so explicitly if you haven't. `npm run test:e2e` (Playwright) needs `npx playwright install --with-deps chromium` first, and doesn't run on macOS 12 or older.
+The app now requires Supabase to boot at all — `npx supabase start` first (Docker required), copy `.env.example` to `.env.local` using the printed `API_URL`/`ANON_KEY`, then `npm run dev`. There is no way to visually verify a UI change without doing so — say so explicitly if you haven't. `npm run test:e2e` (Playwright) needs both Supabase running and `npx playwright install --with-deps chromium`; it doesn't run on macOS 12 or older (use `channel: 'chrome'` locally there — already configured in `playwright.config.ts`).
+
+## Next.js 16 notes
+
+- The `middleware.ts` file convention is deprecated in Next.js 16 in favor of `proxy.ts` (same behavior, function renamed from `middleware` to `proxy`). Don't recreate `middleware.ts`.
+- Supabase mutation queries: when chaining `.insert().select().order()`, the `order()` column must be included in the `select()` list, or PostgREST fails with "column does not exist" (it orders the _returned projection_, not the full row). See `src/features/routines/actions.ts` for the pattern (select id + the sort key, then map by that key rather than assuming array order).
+- Every Supabase table needs an explicit `grant` to `authenticated` (and/or `anon`) in the migration, in addition to RLS policies — RLS only restricts rows for a role that already has table-level privileges; without the grant you get `permission denied` even for correctly-scoped policies.
 
 ## Conventions
 

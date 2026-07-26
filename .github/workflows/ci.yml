@@ -26,6 +26,18 @@ jobs:
 
       - run: npm run test
 
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start local Supabase (applies supabase/migrations)
+        run: supabase start
+
+      - name: Write .env.local from local Supabase status
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(supabase status -o json | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).API_URL')" >> .env.local
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o json | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).ANON_KEY')" >> .env.local
+
       - run: npx playwright install --with-deps chromium
 
       - run: npm run test:e2e

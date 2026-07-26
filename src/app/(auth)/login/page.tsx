@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { AuthForms } from '@/app/(auth)/login/AuthForms';
 
 export default function LoginPage() {
   return (
@@ -8,23 +8,7 @@ export default function LoginPage() {
         <p className="mt-2 text-sm text-zinc-400">Personalized hair care. Backed by science.</p>
       </div>
 
-      <div className="flex w-full flex-col gap-3">
-        <Link
-          href="/today"
-          className="rounded-full bg-violet-600 px-5 py-3 text-sm font-semibold text-white"
-        >
-          Log In
-        </Link>
-        <Link
-          href="/today"
-          className="rounded-full border border-zinc-600 px-5 py-3 text-sm font-semibold text-white"
-        >
-          Create Account
-        </Link>
-        <Link href="/today" className="text-sm font-medium text-violet-400">
-          Continue as Guest
-        </Link>
-      </div>
+      <AuthForms />
     </div>
   );
 }

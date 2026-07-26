@@ -1,36 +1,32 @@
 import { Card } from '@/components/Card';
-import { mockHairProfile } from '@/lib/mock-data';
+import { signOut } from '@/features/auth/actions';
+import { getHairProfile } from '@/features/assessment/data';
+import { ProfileForm } from '@/features/assessment/ProfileForm';
 
-const PROFILE_FIELDS: Array<{ label: string; value: string }> = [
-  { label: 'Curl pattern', value: mockHairProfile.curlPattern },
-  { label: 'Density', value: mockHairProfile.density },
-  { label: 'Porosity', value: mockHairProfile.porosity },
-  { label: 'Thickness', value: mockHairProfile.thickness },
-  { label: 'Scalp type', value: mockHairProfile.scalpType },
-];
+export default async function ProfilePage() {
+  const profile = await getHairProfile();
 
-export default function ProfilePage() {
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-zinc-900">Profile</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-zinc-900">Profile</h1>
+        <form action={signOut}>
+          <button type="submit" className="text-sm font-medium text-red-600">
+            Log out
+          </button>
+        </form>
+      </div>
 
       <Card>
         <h2 className="mb-3 text-xs font-semibold tracking-wide text-zinc-500 uppercase">
           Hair profile
         </h2>
-        <dl className="flex flex-col gap-2 text-sm">
-          {PROFILE_FIELDS.map((field) => (
-            <div key={field.label} className="flex justify-between">
-              <dt className="text-zinc-500">{field.label}</dt>
-              <dd className="font-medium text-zinc-900 capitalize">{field.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </Card>
-
-      <Card>
-        <h2 className="mb-1 text-xs font-semibold tracking-wide text-zinc-500 uppercase">Goal</h2>
-        <p className="text-sm text-zinc-700">{mockHairProfile.goal}</p>
+        {!profile && (
+          <p className="mb-3 text-sm text-zinc-500">
+            You haven&apos;t completed your hair profile yet.
+          </p>
+        )}
+        <ProfileForm profile={profile} />
       </Card>
     </div>
   );

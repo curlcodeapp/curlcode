@@ -14,5 +14,12 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      // Playwright's bundled Chromium doesn't support macOS 12; fall back to system Chrome
+      // for local dev there. CI (Ubuntu) keeps using the bundled Chromium via `channel: undefined`.
+      use: { ...devices['Desktop Chrome'], channel: process.env.CI ? undefined : 'chrome' },
+    },
+  ],
 });
