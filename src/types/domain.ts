@@ -92,11 +92,3 @@ export interface FRDefinition {
 
 export type RecommendationDecision =
   'retain_existing_product' | 'adjust_usage' | 'add_step' | 'replace_product' | 'offer_alternative';
-
-export interface Recommendation {
-  id: string;
-  decision: RecommendationDecision;
-  summary: string;
-  whyThisHelps: string;
-  relatedProductIds: string[];
-}

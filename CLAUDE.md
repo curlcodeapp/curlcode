@@ -9,7 +9,7 @@ curlcode recommends hair care products and routines based on user-provided hair 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Supabase for Postgres, Auth, and Row Level Security — real auth + persistence as of M2 (hair profile, routines). Product catalog/hairstyle/FR definitions are still mock data; the evaluation engine (M3) that scores against them is real, deterministic logic.
+- Supabase for Postgres, Auth, and Row Level Security — real auth + persistence as of M2 (hair profile, routines) and M4 (overrides). Product catalog/hairstyle/FR definitions are still mock data; the evaluation engine (M3) and the recommendations derived from it (M4) are real, deterministic logic.
 - Vitest + React Testing Library for unit/component tests, Playwright for end-to-end (runs against a real local Supabase)
 - ESLint + Prettier
 - GitHub Actions CI
@@ -28,13 +28,14 @@ src/
     assessment/              HairProfile: data.ts (read), actions.ts (save), ProfileForm.tsx
     routines/                 Routine: data.ts (read active routine), actions.ts (activate template)
     evaluation/                scoring.ts: product/routine evaluation engine (SDS §14/§15/§17/§18), pure TS, no I/O
+    recommendations/            derive.ts (pure, mirrors evaluation's no-I/O convention), data.ts (composes routine+evaluation+overrides), actions.ts (recordOverride, undoOverride)
   lib/
     supabase/                 Browser/server Supabase clients + env helper
-    mock-data/                 Seed catalog, hairstyle, routine template, FR subset, recommendations
+    mock-data/                 Seed catalog, hairstyle, routine template, FR subset
   types/                       Domain types mirroring SDS §5 (Core Domain Model)
   proxy.ts                     Session refresh + auth redirect (Next.js 16's "proxy" convention, formerly middleware.ts — see "Next.js 16 notes" below)
 supabase/
-  migrations/                  hair_profiles, routines, routine_steps, routine_step_products + RLS
+  migrations/                  hair_profiles, routines, routine_steps, routine_step_products, overrides + RLS
 e2e/                           Playwright flows (signup → profile → activate routine)
 docs/
   product/                    SDS + product decisions
@@ -75,12 +76,15 @@ The app now requires Supabase to boot at all — `npx supabase start` first (Doc
 - Mock data lives in `src/lib/mock-data/` and must stay clearly labeled as mock — don't let it quietly become the source of truth once Supabase is wired in.
 - Write tests for recommendation/evaluation logic and form validation as those land; every screen should keep at least one render test. Pure layout changes can rely on typecheck + lint.
 - Document non-obvious architecture or product decisions as an ADR in `docs/decisions/`, not as a code comment or a one-off markdown file elsewhere.
+- In Playwright tests, assert on the URL (`toHaveURL`) right after a client-side navigation, not just on text — if the destination page happens to share text with the page you navigated from (e.g. a routine name shown on both Today and Routines), a text assertion can pass against stale DOM mid-transition and mask a navigation that didn't actually happen.
 
 ## SDS traceability
 
 When implementing a feature that maps to the SDS, reference the section number in a comment or commit message (e.g. `SDS §14.2`) rather than re-deriving the rule from scratch — the scoring bands, FR structure, and explanation schema are already specified there. The FR01–FR29 table itself is not yet provided (SDS §32 lists it as an open input) — the mock FR subset in `src/lib/mock-data/fr-definitions.ts` is illustrative only and must not be treated as authoritative once real definitions arrive.
 
 `src/features/evaluation/scoring.ts` implements §14/§15/§17/§18, but `overall_score` currently equals `fr_coverage_score` alone — the hair/scalp/style/routine compatibility components of §14.2's output schema aren't computed because the mock catalog has no per-product hair/scalp/style signals yet. Don't fake those scores with placeholder numbers; add them only once there's real (or intentionally-modeled mock) data to back them, and update the score-band tests when you do.
+
+M4 implements §19 overrides (keep/dismiss/undo) and the missing-step/poor-fit flows from §22, but not the "request alternatives" sub-flow (browsing lower-cost/lighter/fragrance-free/etc. substitutes) — that needs preference tags on products this MVP doesn't model. Don't half-build it with a fake preference list; add it once products carry real preference metadata.
 
 ## Data sensitivity
 

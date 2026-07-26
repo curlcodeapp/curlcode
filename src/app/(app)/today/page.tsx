@@ -2,11 +2,12 @@ import Link from 'next/link';
 
 import { Card } from '@/components/Card';
 import { getHairProfile } from '@/features/assessment/data';
-import { getActiveRoutine } from '@/features/routines/data';
-import { mockRecommendations } from '@/lib/mock-data';
+import { getRoutineRecommendations } from '@/features/recommendations/data';
 
 export default async function TodayPage() {
-  const [profile, routine] = await Promise.all([getHairProfile(), getActiveRoutine()]);
+  const [profile, routineData] = await Promise.all([getHairProfile(), getRoutineRecommendations()]);
+  const routine = routineData?.routine ?? null;
+  const recommendationCount = routineData?.recommendations.length ?? 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -68,7 +69,9 @@ export default async function TodayPage() {
           Recommendations
         </h2>
         <p className="text-sm text-zinc-700">
-          {mockRecommendations.length} new recommendations for you to review
+          {routine
+            ? `${recommendationCount} recommendation${recommendationCount === 1 ? '' : 's'} for you to review`
+            : 'Activate a routine to get recommendations'}
         </p>
         <Link
           href="/recommendations"

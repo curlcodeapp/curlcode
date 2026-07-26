@@ -43,7 +43,9 @@ export const mockRoutine: Routine = {
       sequence: 5,
       stepType: 'define',
       requirementLevel: 'required',
-      assignedProductIds: ['prod_auntjackies_curl_custard'],
+      // Deliberately mismatched: a texture mousse covers FR09 (moisture) but not FR14
+      // (hold) — a realistic case for the evaluation engine to flag as a poor fit.
+      assignedProductIds: ['prod_thedoux_texture_foam'],
     },
     {
       id: 'step_refresh',

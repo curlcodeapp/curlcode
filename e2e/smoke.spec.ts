@@ -38,5 +38,27 @@ test('core flow: sign up, complete profile, activate routine', async ({ page }) 
   await expect(page.getByText('1. detangle')).toBeVisible();
 
   await page.getByRole('link', { name: 'Today' }).click();
+  await expect(page).toHaveURL(/\/today$/);
   await expect(page.getByText('Weekly Wash & Go')).toBeVisible();
+
+  await page.getByRole('link', { name: 'Recs' }).click();
+  await expect(page).toHaveURL(/\/recommendations$/);
+  await expect(page.getByText('Consider replacing your define product')).toBeVisible();
+
+  await Promise.all([
+    page.waitForResponse(
+      (res) => res.url().includes('/recommendations') && res.request().method() === 'POST',
+    ),
+    page.getByRole('button', { name: 'Keep it anyway' }).click(),
+  ]);
+  await expect(page.getByText("You're all set — no recommendations right now.")).toBeVisible();
+  await expect(page.getByText(/Kept/)).toBeVisible();
+
+  await Promise.all([
+    page.waitForResponse(
+      (res) => res.url().includes('/recommendations') && res.request().method() === 'POST',
+    ),
+    page.getByRole('button', { name: 'Undo' }).click(),
+  ]);
+  await expect(page.getByText('Consider replacing your define product')).toBeVisible();
 });

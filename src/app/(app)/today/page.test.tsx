@@ -13,22 +13,27 @@ vi.mock('@/features/assessment/data', () => ({
   }),
 }));
 
-vi.mock('@/features/routines/data', () => ({
-  getActiveRoutine: vi.fn().mockResolvedValue({
-    id: 'routine_test',
-    name: 'Weekly Wash & Go',
-    targetStyleId: 'style_wash_and_go',
-    status: 'active',
-    washCycleDays: 7,
-    steps: [
-      {
-        id: 'step_1',
-        sequence: 1,
-        stepType: 'cleanse',
-        requirementLevel: 'required',
-        assignedProductIds: [],
-      },
-    ],
+vi.mock('@/features/recommendations/data', () => ({
+  getRoutineRecommendations: vi.fn().mockResolvedValue({
+    routine: {
+      id: 'routine_test',
+      name: 'Weekly Wash & Go',
+      targetStyleId: 'style_wash_and_go',
+      status: 'active',
+      washCycleDays: 7,
+      steps: [
+        {
+          id: 'step_1',
+          sequence: 1,
+          stepType: 'cleanse',
+          requirementLevel: 'required',
+          assignedProductIds: [],
+        },
+      ],
+    },
+    evaluation: { routineId: 'routine_test', stepEvaluations: [], missingSteps: [] },
+    overrides: [],
+    recommendations: [],
   }),
 }));
 
