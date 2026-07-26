@@ -45,13 +45,17 @@ test('core flow: sign up, complete profile, activate routine', async ({ page }) 
   await expect(page).toHaveURL(/\/recommendations$/);
   await expect(page.getByText('Consider replacing your define product')).toBeVisible();
 
+  // The real FR-grounded catalog also flags the leave-in step, so scope to the define card.
+  const defineCard = page
+    .locator('li')
+    .filter({ hasText: 'Consider replacing your define product' });
   await Promise.all([
     page.waitForResponse(
       (res) => res.url().includes('/recommendations') && res.request().method() === 'POST',
     ),
-    page.getByRole('button', { name: 'Keep it anyway' }).click(),
+    defineCard.getByRole('button', { name: 'Keep it anyway' }).click(),
   ]);
-  await expect(page.getByText("You're all set — no recommendations right now.")).toBeVisible();
+  await expect(page.getByText('Consider replacing your define product')).not.toBeVisible();
   await expect(page.getByText(/Kept/)).toBeVisible();
 
   await Promise.all([

@@ -9,7 +9,8 @@ The MVP is being built as a scoped-down slice of a much larger spec (see `docs/p
 - **M0/M1 (done):** static walkthrough of all five primary screens (Today, Products, Routines, Recommendations, Profile) against mock data.
 - **M2 (done):** real Supabase Auth (email/password) and per-user persistence for the hair profile and an activated routine.
 - **M3 (done):** the deterministic evaluation engine (SDS §14/§15/§17) scores each assigned product against its step's required functional requirements and renders a fit rating + explanation (SDS §18) on the Routines screen.
-- **M4 (current):** recommendations are now derived live from the evaluation engine (missing required steps, poor/weak-fit products) instead of static mock cards, and users can keep a poorly-rated product, dismiss a recommendation, or undo either — all persisted (SDS §19 overrides). The "request alternatives" sub-flow from SDS §22 (browsing preference-based substitutes) isn't built yet — it needs preference tags on products this MVP doesn't model. The product catalog, hairstyle, and FR definitions are still mock data — see "Mock vs. real data" below.
+- **M4 (done):** recommendations are now derived live from the evaluation engine (missing required steps, poor/weak-fit products) instead of static mock cards, and users can keep a poorly-rated product, dismiss a recommendation, or undo either — all persisted (SDS §19 overrides). The "request alternatives" sub-flow from SDS §22 (browsing preference-based substitutes) isn't built yet — it needs preference tags on products this MVP doesn't model.
+- **M5 (current):** the FR01–FR29 table is now real, not a placeholder (see `docs/decisions/0001-ground-evaluation-engine-in-real-fr-data.md`) — sourced from a much richer workbook the product owner supplied (`docs/product/CurlCode_Recommendation_Engine_Tables.xlsx`) that also specifies a full style-weighted, personalized, conflict-resolved scoring model beyond what this MVP's simple engine implements; that full model is a deferred future milestone. The mock catalog's `frCoverage` was remapped to the real FR IDs. `docs/decisions/0002-routine-execution-extension-points.md` confirms today's schema is compatible with the still-deferred scheduling/execution-history module (SDS §47) without needing changes now. The product catalog and hairstyle remain mock data — see "Mock vs. real data" below.
 
 The app now requires Supabase to run at all (every route goes through `src/proxy.ts`, which needs a Supabase session) — see Getting started.
 
@@ -59,7 +60,8 @@ Never commit `.env.local` or put the Supabase **service role** key in any `NEXT_
 
 - **Real (Supabase-backed):** auth, the user's hair profile (`hair_profiles`), an activated routine with its steps (`routines`, `routine_steps`, `routine_step_products`), and recommendation overrides (`overrides` — keep/dismiss/undo).
 - **Real (computed, not mock):** the evaluation engine (`src/features/evaluation/`) and the recommendations it derives (`src/features/recommendations/`) — both are real, deterministic logic. What's "mock" is their _inputs_ (see below), not the logic itself.
-- **Still mock (`src/lib/mock-data/`):** the product catalog (including `frCoverage` scores), the one seeded hairstyle, and the FR (functional requirement) subset. Activating a routine copies the mock routine _template_ into real per-user rows — the template itself stays mock. The FR01–FR29 table itself doesn't exist yet (SDS §32 open input) — the 5 FRs in `fr-definitions.ts` are illustrative placeholders.
+- **Real, versioned config, not mock (`src/config/`):** the FR01–FR29 table (`fr-definitions.ts`), sourced from the product owner's real workbook. `applicableStepTypes` per FR is our own derivation (see ADR-0001) — not in the source data.
+- **Still mock (`src/lib/mock-data/`):** the product catalog (including `frCoverage` scores, approximated from real product-category strengths — not real ingredient-derived enrichment) and the one seeded hairstyle. Activating a routine copies the mock routine _template_ into real per-user rows — the template itself stays mock.
 
 ## Project structure
 
@@ -78,7 +80,8 @@ src/
     recommendations/          derive.ts (pure), data.ts (compose + fetch overrides), actions.ts (record/undo override)
   lib/
     supabase/                Browser/server Supabase clients + env helper
-    mock-data/                Seed catalog, hairstyle, routine template, FR subset
+    mock-data/                Seed catalog, hairstyle, routine template (still invented/mock)
+  config/                     fr-definitions.ts: the real FR01-29 table (versioned config, not mock)
   types/                      Domain types mirroring the SDS's core domain model
   proxy.ts                    Session refresh + auth redirect (Next.js 16's proxy, formerly "middleware")
 supabase/

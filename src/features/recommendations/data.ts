@@ -1,10 +1,11 @@
+import { frDefinitions } from '@/config/fr-definitions';
 import { evaluateRoutine } from '@/features/evaluation/scoring';
 import type { RoutineEvaluation } from '@/features/evaluation/types';
 import { deriveRecommendations } from '@/features/recommendations/derive';
 import type { DerivedRecommendation, Override } from '@/features/recommendations/types';
 import { getActiveRoutine } from '@/features/routines/data';
 import { createClient } from '@/lib/supabase/server';
-import { mockFRDefinitions, mockProducts } from '@/lib/mock-data';
+import { mockProducts } from '@/lib/mock-data';
 import type { Routine } from '@/types/domain';
 
 interface OverrideRow {
@@ -47,7 +48,7 @@ export async function getRoutineRecommendations(): Promise<RoutineRecommendation
   const routine = await getActiveRoutine();
   if (!routine) return null;
 
-  const evaluation = evaluateRoutine(routine, mockProducts, mockFRDefinitions);
+  const evaluation = evaluateRoutine(routine, mockProducts, frDefinitions);
   const overrides = await getOverridesForRoutineSteps(routine.steps.map((step) => step.id));
   const recommendations = deriveRecommendations(routine, evaluation, overrides);
 

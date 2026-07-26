@@ -1,7 +1,10 @@
 import type { Product } from '@/types/domain';
 
 // Seed catalog standing in for the scrape/normalize/enrich pipeline (SDS §6, §8, §9).
-// frCoverage scores are illustrative placeholders, not derived from real ingredient evidence.
+// frCoverage now uses the real FR01-FR29 IDs (src/config/fr-definitions.ts), scored from the
+// real ProductCategories sheet's Support_Strength (1-5, scaled to 0-100 as strength*20) for
+// each product's closest real product category — not derived from actual ingredient parsing,
+// which the enrichment pipeline this MVP doesn't implement would normally produce.
 export const mockProducts: Product[] = [
   {
     id: 'prod_mielle_rosemary_shampoo',
@@ -9,7 +12,8 @@ export const mockProducts: Product[] = [
     brand: 'Mielle Organics',
     type: 'shampoo',
     ingredients: ['water', 'rosemary leaf extract', 'biotin', 'mild surfactants'],
-    frCoverage: [{ frId: 'FR01', score: 82 }],
+    // gentle_shampoo: FR17 (Balance Scalp Oil Production), strength 4
+    frCoverage: [{ frId: 'FR17', score: 80 }],
   },
   {
     id: 'prod_mielle_pomegranate_leave_in',
@@ -17,10 +21,8 @@ export const mockProducts: Product[] = [
     brand: 'Mielle Organics',
     type: 'leave_in',
     ingredients: ['water', 'pomegranate extract', 'honey', 'glycerin', 'panthenol'],
-    frCoverage: [
-      { frId: 'FR05', score: 78 },
-      { frId: 'FR09', score: 70 },
-    ],
+    // leave_in_spray: FR01 (Increase Fiber Water Content), strength 4
+    frCoverage: [{ frId: 'FR01', score: 80 }],
   },
   {
     id: 'prod_mielle_babassu_conditioner',
@@ -28,7 +30,8 @@ export const mockProducts: Product[] = [
     brand: 'Mielle Organics',
     type: 'deep_conditioner',
     ingredients: ['water', 'babassu oil', 'peppermint oil', 'shea butter'],
-    frCoverage: [{ frId: 'FR09', score: 74 }],
+    // deep_conditioner: FR02 (Reduce Fiber Water Loss), strength 5
+    frCoverage: [{ frId: 'FR02', score: 100 }],
   },
   {
     id: 'prod_auntjackies_curl_custard',
@@ -36,7 +39,8 @@ export const mockProducts: Product[] = [
     brand: "Aunt Jackie's",
     type: 'styler',
     ingredients: ['water', 'flaxseed extract', 'aloe vera', 'castor oil'],
-    frCoverage: [{ frId: 'FR14', score: 76 }],
+    // curl_cream: FR11 (Improve Curl Clumping), strength 4
+    frCoverage: [{ frId: 'FR11', score: 80 }],
   },
   {
     id: 'prod_auntjackies_quench_moisturizer',
@@ -44,7 +48,8 @@ export const mockProducts: Product[] = [
     brand: "Aunt Jackie's",
     type: 'styler',
     ingredients: ['water', 'shea butter', 'coconut oil', 'aloe vera juice'],
-    frCoverage: [{ frId: 'FR09', score: 68 }],
+    // leave_in_cream: FR02 (Reduce Fiber Water Loss), strength 4
+    frCoverage: [{ frId: 'FR02', score: 80 }],
   },
   {
     id: 'prod_auntjackies_flaxseed_gel',
@@ -52,7 +57,11 @@ export const mockProducts: Product[] = [
     brand: "Aunt Jackie's",
     type: 'styler',
     ingredients: ['water', 'flaxseed extract', 'carbomer', 'aloe vera'],
-    frCoverage: [{ frId: 'FR14', score: 81 }],
+    // gel_strong_hold: FR12 (Increase Curl Hold) strength 5, FR13 (Reduce Humidity Absorption) strength 4
+    frCoverage: [
+      { frId: 'FR12', score: 100 },
+      { frId: 'FR13', score: 80 },
+    ],
   },
   {
     id: 'prod_sheamoisture_manuka_masque',
@@ -60,7 +69,8 @@ export const mockProducts: Product[] = [
     brand: 'SheaMoisture',
     type: 'deep_conditioner',
     ingredients: ['water', 'manuka honey', 'yogurt extract', 'shea butter'],
-    frCoverage: [{ frId: 'FR09', score: 80 }],
+    // deep_conditioner: FR02 (Reduce Fiber Water Loss), strength 5
+    frCoverage: [{ frId: 'FR02', score: 100 }],
   },
   {
     id: 'prod_sheamoisture_coconut_shampoo',
@@ -68,7 +78,8 @@ export const mockProducts: Product[] = [
     brand: 'SheaMoisture',
     type: 'shampoo',
     ingredients: ['water', 'coconut oil', 'hibiscus flower extract', 'mild surfactants'],
-    frCoverage: [{ frId: 'FR01', score: 75 }],
+    // gentle_shampoo: FR17 (Balance Scalp Oil Production), strength 4
+    frCoverage: [{ frId: 'FR17', score: 80 }],
   },
   {
     id: 'prod_sheamoisture_jbco_leave_in',
@@ -76,7 +87,8 @@ export const mockProducts: Product[] = [
     brand: 'SheaMoisture',
     type: 'leave_in',
     ingredients: ['water', 'jamaican black castor oil', 'apple cider vinegar', 'shea butter'],
-    frCoverage: [{ frId: 'FR05', score: 72 }],
+    // leave_in_spray: FR01 (Increase Fiber Water Content), strength 4
+    frCoverage: [{ frId: 'FR01', score: 80 }],
   },
   {
     id: 'prod_thedoux_foam_wrap',
@@ -84,7 +96,11 @@ export const mockProducts: Product[] = [
     brand: 'The Doux',
     type: 'styler',
     ingredients: ['water', 'polymer blend', 'panthenol', 'aloe vera'],
-    frCoverage: [{ frId: 'FR14', score: 79 }],
+    // mousse: FR11 (Improve Curl Clumping) strength 4, FR27 (Increase Fiber Volume) strength 5
+    frCoverage: [
+      { frId: 'FR11', score: 80 },
+      { frId: 'FR27', score: 100 },
+    ],
   },
   {
     id: 'prod_thedoux_texture_foam',
@@ -92,7 +108,13 @@ export const mockProducts: Product[] = [
     brand: 'The Doux',
     type: 'styler',
     ingredients: ['water', 'polymer blend', 'shea butter', 'glycerin'],
-    frCoverage: [{ frId: 'FR09', score: 66 }],
+    // mousse: FR11 (Improve Curl Clumping) strength 4, FR27 (Increase Fiber Volume) strength 5.
+    // Notably missing FR12 (Curl Hold), the "define" step's other required FR — a real,
+    // evidence-based weak fit for that step, not a fabricated one (see routines.ts).
+    frCoverage: [
+      { frId: 'FR11', score: 80 },
+      { frId: 'FR27', score: 100 },
+    ],
   },
   {
     id: 'prod_thedoux_hydration_oil',
@@ -100,7 +122,8 @@ export const mockProducts: Product[] = [
     brand: 'The Doux',
     type: 'oil',
     ingredients: ['sweet almond oil', 'jojoba oil', 'vitamin e'],
-    frCoverage: [{ frId: 'FR05', score: 74 }],
+    // detangler: FR09 (Increase Fiber Lubrication / Slip), strength 5
+    frCoverage: [{ frId: 'FR09', score: 100 }],
   },
   {
     id: 'prod_keracare_thermal_wonder',
@@ -108,7 +131,8 @@ export const mockProducts: Product[] = [
     brand: 'KeraCare',
     type: 'heat_protectant',
     ingredients: ['water', 'dimethicone', 'cyclopentasiloxane', 'panthenol'],
-    frCoverage: [{ frId: 'FR22', score: 85 }],
+    // heat_protectant: FR15 (Protect From Heat Damage), strength 5
+    frCoverage: [{ frId: 'FR15', score: 100 }],
   },
   {
     id: 'prod_keracare_detangling_shampoo',
@@ -116,7 +140,8 @@ export const mockProducts: Product[] = [
     brand: 'KeraCare',
     type: 'shampoo',
     ingredients: ['water', 'mild surfactants', 'panthenol', 'chamomile extract'],
-    frCoverage: [{ frId: 'FR01', score: 70 }],
+    // gentle_shampoo: FR17 (Balance Scalp Oil Production), strength 4
+    frCoverage: [{ frId: 'FR17', score: 80 }],
   },
   {
     id: 'prod_keracare_leave_in',
@@ -124,7 +149,8 @@ export const mockProducts: Product[] = [
     brand: 'KeraCare',
     type: 'leave_in',
     ingredients: ['water', 'hydrolyzed protein', 'glycerin', 'panthenol'],
-    frCoverage: [{ frId: 'FR05', score: 77 }],
+    // leave_in_spray: FR01 (Increase Fiber Water Content), strength 4
+    frCoverage: [{ frId: 'FR01', score: 80 }],
   },
   {
     id: 'prod_keracare_natural_oil_moist',
@@ -132,7 +158,35 @@ export const mockProducts: Product[] = [
     brand: 'KeraCare',
     type: 'oil',
     ingredients: ['water', 'coconut oil', 'olive oil', 'shea butter'],
-    frCoverage: [{ frId: 'FR09', score: 71 }],
+    // lightweight_oil: FR10 (Reduce Fiber Friction), strength 3
+    frCoverage: [{ frId: 'FR10', score: 60 }],
+  },
+  {
+    id: 'prod_mielle_pomegranate_pre_poo',
+    name: 'Pomegranate & Honey Pre-Shampoo Treatment',
+    brand: 'Mielle Organics',
+    type: 'oil',
+    ingredients: ['water', 'pomegranate extract', 'honey', 'castor oil'],
+    // penetrating_treatment: FR03 (Improve Water Penetration), strength 5
+    frCoverage: [{ frId: 'FR03', score: 100 }],
+  },
+  {
+    id: 'prod_auntjackies_protein_treatment',
+    name: "Don't Shrink Protein Strengthening Treatment",
+    brand: "Aunt Jackie's",
+    type: 'protein_treatment',
+    ingredients: ['water', 'hydrolyzed wheat protein', 'hydrolyzed silk protein'],
+    // protein_treatment: FR06 (Reinforce Keratin Structure), strength 5
+    frCoverage: [{ frId: 'FR06', score: 100 }],
+  },
+  {
+    id: 'prod_thedoux_curl_refresher',
+    name: 'So Clean Curl Refresher Spray',
+    brand: 'The Doux',
+    type: 'styler',
+    ingredients: ['water', 'aloe vera juice', 'glycerin', 'slippery elm'],
+    // refresh_spray: FR29 (Improve Style Longevity), strength 3
+    frCoverage: [{ frId: 'FR29', score: 60 }],
   },
 ];
 

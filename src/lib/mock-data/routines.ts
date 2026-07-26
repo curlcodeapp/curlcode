@@ -36,6 +36,9 @@ export const mockRoutine: Routine = {
       sequence: 4,
       stepType: 'leave_in',
       requirementLevel: 'required',
+      // Real, evidence-based partial fit: this leave-in only covers FR01 (hydration);
+      // "leave_in" also requires FR02 (retention), which a lighter spray-type leave-in
+      // like this one genuinely doesn't provide per its ProductCategories mapping.
       assignedProductIds: ['prod_mielle_pomegranate_leave_in'],
     },
     {
@@ -43,8 +46,9 @@ export const mockRoutine: Routine = {
       sequence: 5,
       stepType: 'define',
       requirementLevel: 'required',
-      // Deliberately mismatched: a texture mousse covers FR09 (moisture) but not FR14
-      // (hold) — a realistic case for the evaluation engine to flag as a poor fit.
+      // Real, evidence-based partial fit: this mousse covers FR11 (curl definition) and
+      // FR27 (volume) per its real product-category mapping, but not FR12 (curl hold),
+      // which "define" also requires — a genuine weak fit, not a fabricated one.
       assignedProductIds: ['prod_thedoux_texture_foam'],
     },
     {
@@ -52,7 +56,7 @@ export const mockRoutine: Routine = {
       sequence: 6,
       stepType: 'refresh',
       requirementLevel: 'optional',
-      assignedProductIds: [],
+      assignedProductIds: ['prod_thedoux_curl_refresher'],
     },
   ],
 };

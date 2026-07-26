@@ -1,9 +1,10 @@
 import { Card } from '@/components/Card';
+import { frDefinitions } from '@/config/fr-definitions';
 import { evaluateRoutine } from '@/features/evaluation/scoring';
 import type { Rating } from '@/features/evaluation/types';
 import { activateRoutineTemplate } from '@/features/routines/actions';
 import { getActiveRoutine } from '@/features/routines/data';
-import { getProductById, mockFRDefinitions, mockProducts, mockRoutine } from '@/lib/mock-data';
+import { getProductById, mockProducts, mockRoutine } from '@/lib/mock-data';
 
 const REQUIREMENT_LABEL: Record<string, string> = {
   required: 'Required',
@@ -33,7 +34,7 @@ const RATING_BADGE_CLASS: Record<Rating, string> = {
 
 export default async function RoutinesPage() {
   const routine = await getActiveRoutine();
-  const evaluation = routine ? evaluateRoutine(routine, mockProducts, mockFRDefinitions) : null;
+  const evaluation = routine ? evaluateRoutine(routine, mockProducts, frDefinitions) : null;
 
   return (
     <div className="flex flex-col gap-4">

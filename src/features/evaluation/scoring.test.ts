@@ -5,15 +5,21 @@ import type { FRDefinition, Product, Routine, RoutineStep } from '@/types/domain
 
 const FR_SLIP: FRDefinition = {
   frId: 'FR05',
-  name: 'provides_slip_for_detangling',
-  definition: 'Reduces friction between strands enough to ease detangling.',
+  mechanism: 'Provides Slip For Detangling',
+  uxLabel: 'Slip',
+  targetArea: 'Hair Fiber',
+  description: 'Reduces friction between strands enough to ease detangling.',
+  implementationNotes: '',
   applicableStepTypes: ['detangle'],
 };
 
 const FR_SEAL: FRDefinition = {
   frId: 'FR09',
-  name: 'seals_and_retains_moisture',
-  definition: 'Forms a light film or seal that helps retain moisture.',
+  mechanism: 'Seals And Retains Moisture',
+  uxLabel: 'Seal',
+  targetArea: 'Hair Fiber',
+  description: 'Forms a light film or seal that helps retain moisture.',
+  implementationNotes: '',
   applicableStepTypes: ['leave_in'],
 };
 

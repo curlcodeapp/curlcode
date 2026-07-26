@@ -4,12 +4,12 @@ Guidance for Claude Code when working in this repository.
 
 ## What this project is
 
-curlcode recommends hair care products and routines based on user-provided hair information (curl pattern, porosity, goals, current routine, etc.). The full product vision is specified in `docs/product/Hair_Care_Recommendation_Platform_SDS_Final_v1.1.docx` (an enterprise-scale spec: scraping pipeline, ingredient master DB, a 29-rule deterministic recommendation engine, admin tooling). **We are building a deliberately scoped-down MVP, not the full SDS** — see `docs/plans/` and the plan under `.claude/plans/` for the current milestone breakdown. When a task references the SDS, check which milestone we're on before assuming a feature is in scope.
+curlcode recommends hair care products and routines based on user-provided hair information (curl pattern, porosity, goals, current routine, etc.). The full product vision is specified in `docs/product/Hair_Care_Recommendation_Platform_SDS_Final_v1.1.docx` (an enterprise-scale spec: scraping pipeline, ingredient master DB, a 29-rule deterministic recommendation engine, admin tooling), with the real FR01–FR29 table and a full style-weighted/personalized/conflict-resolved scoring design in `docs/product/CurlCode_Recommendation_Engine_Tables.xlsx`. **We are building a deliberately scoped-down MVP, not the full SDS** — see `docs/plans/`, the plan under `.claude/plans/`, and `docs/decisions/` for the current milestone breakdown and what's deferred. When a task references the SDS, check which milestone we're on before assuming a feature is in scope.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Supabase for Postgres, Auth, and Row Level Security — real auth + persistence as of M2 (hair profile, routines) and M4 (overrides). Product catalog/hairstyle/FR definitions are still mock data; the evaluation engine (M3) and the recommendations derived from it (M4) are real, deterministic logic.
+- Supabase for Postgres, Auth, and Row Level Security — real auth + persistence as of M2 (hair profile, routines) and M4 (overrides). Product catalog/hairstyle are still mock data; FR definitions are real, versioned config as of M5 (`src/config/`, see ADR-0001). The evaluation engine (M3) and the recommendations derived from it (M4) are real, deterministic logic.
 - Vitest + React Testing Library for unit/component tests, Playwright for end-to-end (runs against a real local Supabase)
 - ESLint + Prettier
 - GitHub Actions CI
@@ -31,7 +31,8 @@ src/
     recommendations/            derive.ts (pure, mirrors evaluation's no-I/O convention), data.ts (composes routine+evaluation+overrides), actions.ts (recordOverride, undoOverride)
   lib/
     supabase/                 Browser/server Supabase clients + env helper
-    mock-data/                 Seed catalog, hairstyle, routine template, FR subset
+    mock-data/                 Seed catalog + hairstyle + routine template (still invented/mock)
+  config/                      fr-definitions.ts: the real FR01-29 table (SDS §43 versioned config, not mock — see ADR-0001)
   types/                       Domain types mirroring SDS §5 (Core Domain Model)
   proxy.ts                     Session refresh + auth redirect (Next.js 16's "proxy" convention, formerly middleware.ts — see "Next.js 16 notes" below)
 supabase/
@@ -73,18 +74,22 @@ The app now requires Supabase to boot at all — `npx supabase start` first (Doc
 - Keep Supabase access behind `src/lib/supabase/` — screens and components should not call `supabase-js` directly.
 - Every new Supabase table needs a Row Level Security policy in the same migration that creates it. There is no "add RLS later."
 - Environment variables exposed to the client must be prefixed `NEXT_PUBLIC_`. The Supabase **service role** key must never appear in client code or any `NEXT_PUBLIC_*` variable — server-side use only.
-- Mock data lives in `src/lib/mock-data/` and must stay clearly labeled as mock — don't let it quietly become the source of truth once Supabase is wired in.
+- Mock data lives in `src/lib/mock-data/` and must stay clearly labeled as mock. Real, externally-authored versioned config (like the FR table) lives in `src/config/` instead — don't blur the two, and don't let mock data quietly become the source of truth once Supabase is wired in.
 - Write tests for recommendation/evaluation logic and form validation as those land; every screen should keep at least one render test. Pure layout changes can rely on typecheck + lint.
 - Document non-obvious architecture or product decisions as an ADR in `docs/decisions/`, not as a code comment or a one-off markdown file elsewhere.
 - In Playwright tests, assert on the URL (`toHaveURL`) right after a client-side navigation, not just on text — if the destination page happens to share text with the page you navigated from (e.g. a routine name shown on both Today and Routines), a text assertion can pass against stale DOM mid-transition and mask a navigation that didn't actually happen.
 
 ## SDS traceability
 
-When implementing a feature that maps to the SDS, reference the section number in a comment or commit message (e.g. `SDS §14.2`) rather than re-deriving the rule from scratch — the scoring bands, FR structure, and explanation schema are already specified there. The FR01–FR29 table itself is not yet provided (SDS §32 lists it as an open input) — the mock FR subset in `src/lib/mock-data/fr-definitions.ts` is illustrative only and must not be treated as authoritative once real definitions arrive.
+When implementing a feature that maps to the SDS, reference the section number in a comment or commit message (e.g. `SDS §14.2`) rather than re-deriving the rule from scratch — the scoring bands, FR structure, and explanation schema are already specified there.
 
-`src/features/evaluation/scoring.ts` implements §14/§15/§17/§18, but `overall_score` currently equals `fr_coverage_score` alone — the hair/scalp/style/routine compatibility components of §14.2's output schema aren't computed because the mock catalog has no per-product hair/scalp/style signals yet. Don't fake those scores with placeholder numbers; add them only once there's real (or intentionally-modeled mock) data to back them, and update the score-band tests when you do.
+The FR01–FR29 table is now real (`src/config/fr-definitions.ts`, sourced from `docs/product/CurlCode_Recommendation_Engine_Tables.xlsx`'s HairMechanisms sheet) — no longer a placeholder. That workbook also contains a full style-weighted, profile-personalized, conflict-resolved scoring design (StyleMechanisms + InputModifiers + ConflictRules + ProductCategories) that the current evaluation engine does **not** implement — see ADR-0001 (`docs/decisions/0001-ground-evaluation-engine-in-real-fr-data.md`) before touching `src/features/evaluation/scoring.ts` or `src/config/fr-definitions.ts`. In short: `applicableStepTypes` per FR is a deliberately narrowed 1-2-FR-per-step derivation, not the real model — don't "fix" it by aggregating every related FR back in without first reading why that was rejected.
+
+`src/features/evaluation/scoring.ts` implements §14/§15/§17/§18, but `overall_score` currently equals `fr_coverage_score` alone — the hair/scalp/style/routine compatibility components of §14.2's output schema aren't computed. That's exactly what the deferred weighted engine (ADR-0001) would provide; don't fake those scores with placeholder numbers in the interim.
 
 M4 implements §19 overrides (keep/dismiss/undo) and the missing-step/poor-fit flows from §22, but not the "request alternatives" sub-flow (browsing lower-cost/lighter/fragrance-free/etc. substitutes) — that needs preference tags on products this MVP doesn't model. Don't half-build it with a fake preference list; add it once products carry real preference metadata.
+
+Routine execution/scheduling extension points (SDS §20, §31.1, §34.2) are covered by ADR-0002 (`docs/decisions/0002-routine-execution-extension-points.md`) — today's schema is already compatible; the one real gap (cascade-delete vs. immutability) is documented there, not fixed yet since nothing deletes a routine today.
 
 ## Data sensitivity
 

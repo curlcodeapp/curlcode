@@ -67,7 +67,8 @@ export type ProductType =
   | 'deep_conditioner'
   | 'styler'
   | 'oil'
-  | 'heat_protectant';
+  | 'heat_protectant'
+  | 'protein_treatment';
 
 export interface FRCoverage {
   frId: string;
@@ -83,10 +84,18 @@ export interface Product {
   frCoverage: FRCoverage[];
 }
 
+export type TargetArea = 'Hair Fiber' | 'Scalp' | 'Styling' | 'Cleansing';
+
+// Mirrors the real HairMechanisms table (docs/product/CurlCode_Recommendation_Engine_Tables.xlsx).
 export interface FRDefinition {
   frId: string;
-  name: string;
-  definition: string;
+  mechanism: string;
+  uxLabel: string;
+  targetArea: TargetArea;
+  description: string;
+  implementationNotes: string;
+  // Derived from the real ProductCategories sheet's (Routine_Stage, FR_ID) pairs, narrowed to
+  // the 1-2 FRs most centrally defining each step's purpose — see src/config/fr-definitions.ts.
   applicableStepTypes: StepType[];
 }
 

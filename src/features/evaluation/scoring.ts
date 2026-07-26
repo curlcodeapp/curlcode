@@ -27,7 +27,7 @@ function requiredFRsForStep(step: RoutineStep, frDefinitions: FRDefinition[]): F
 }
 
 function humanizeFRName(fr: FRDefinition): string {
-  return fr.name.replaceAll('_', ' ');
+  return fr.mechanism;
 }
 
 function unableToEvaluate(reason: string): ProductEvaluation {
