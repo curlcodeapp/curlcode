@@ -34,4 +34,14 @@ describe('RoutinesPage', () => {
       expect(screen.getByText(stepLabel)).toBeInTheDocument();
     }
   });
+
+  it('renders a fit rating and explanation for each assigned product', async () => {
+    getActiveRoutine.mockResolvedValue(mockRoutine);
+    render(await RoutinesPage());
+    // Every assigned product in the seed routine covers its step's required FR at 70-84/100 → good_fit.
+    expect(screen.getAllByText('Good fit').length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText('This product is a good match for this step — no changes needed.').length,
+    ).toBeGreaterThan(0);
+  });
 });

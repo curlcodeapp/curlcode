@@ -9,7 +9,7 @@ curlcode recommends hair care products and routines based on user-provided hair 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Supabase for Postgres, Auth, and Row Level Security — real auth + persistence as of M2 (hair profile, routines). Product catalog/hairstyle/FR definitions are still mock data.
+- Supabase for Postgres, Auth, and Row Level Security — real auth + persistence as of M2 (hair profile, routines). Product catalog/hairstyle/FR definitions are still mock data; the evaluation engine (M3) that scores against them is real, deterministic logic.
 - Vitest + React Testing Library for unit/component tests, Playwright for end-to-end (runs against a real local Supabase)
 - ESLint + Prettier
 - GitHub Actions CI
@@ -27,6 +27,7 @@ src/
     auth/                   Server actions: signUp, signIn, signOut
     assessment/              HairProfile: data.ts (read), actions.ts (save), ProfileForm.tsx
     routines/                 Routine: data.ts (read active routine), actions.ts (activate template)
+    evaluation/                scoring.ts: product/routine evaluation engine (SDS §14/§15/§17/§18), pure TS, no I/O
   lib/
     supabase/                 Browser/server Supabase clients + env helper
     mock-data/                 Seed catalog, hairstyle, routine template, FR subset, recommendations
@@ -78,6 +79,8 @@ The app now requires Supabase to boot at all — `npx supabase start` first (Doc
 ## SDS traceability
 
 When implementing a feature that maps to the SDS, reference the section number in a comment or commit message (e.g. `SDS §14.2`) rather than re-deriving the rule from scratch — the scoring bands, FR structure, and explanation schema are already specified there. The FR01–FR29 table itself is not yet provided (SDS §32 lists it as an open input) — the mock FR subset in `src/lib/mock-data/fr-definitions.ts` is illustrative only and must not be treated as authoritative once real definitions arrive.
+
+`src/features/evaluation/scoring.ts` implements §14/§15/§17/§18, but `overall_score` currently equals `fr_coverage_score` alone — the hair/scalp/style/routine compatibility components of §14.2's output schema aren't computed because the mock catalog has no per-product hair/scalp/style signals yet. Don't fake those scores with placeholder numbers; add them only once there's real (or intentionally-modeled mock) data to back them, and update the score-band tests when you do.
 
 ## Data sensitivity
 
